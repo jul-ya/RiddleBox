@@ -11,13 +11,13 @@ const int btns[] = {38,40,42,44,46,48,50,52};
 const byte ROWS = 4;
 const byte COLS = 4;
 char keys[ROWS][COLS] = {
-  {'5','1','2','K'},
-  {'8','3','*','7'},
-  {'M','#','4','9'},
-  {'6','W','R','0'}
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
 };
-byte rowPins[ROWS] = {24, 34, 28, 30};
-byte colPins[COLS] = {36, 32, 26, 22};
+byte rowPins[ROWS] = {36, 34, 32, 30};
+byte colPins[COLS] = {28, 26, 24, 22};
 Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS); 
 
 void setup() {

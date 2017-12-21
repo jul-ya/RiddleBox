@@ -1,8 +1,23 @@
 
 #include <LiquidCrystal.h>
 #include <Keypad.h>
+#include <StateMachine.h>
 
-const int piezo = 23;
+StateMachine machine = StateMachine();
+State* k1 = machine.addState(&keypad1);
+State* k2 = machine.addState(&keypad2);
+State* t1 = machine.addState(&toggle1);
+State* t2 = machine.addState(&toggle2);
+State* p = machine.addState(&piezo);
+State* s = machine.addState(&solved);
+
+bool k1_solved = false;
+bool k2_solved = false;
+bool t1_solved = false;
+bool t2_solved = false;
+bool p_solved = false;
+
+const int piezoPin = 23;
 
 const int rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -34,9 +49,55 @@ void setup() {
     pinMode(leds[i], OUTPUT);
     pinMode(btns[i], INPUT_PULLUP);
   }
+
+  k1->addTransition(&transitionk1k2,k2);
+  k2->addTransition(&transitionk2t1,t1);
+  t1->addTransition(&transitiont1t2,t2);
+  t2->addTransition(&transitiont2p,p);
+  p->addTransition(&transitionps,s);
 }
 
 void loop() {
+  machine.run();
+  
+  /* simple display test
+  lcd.noDisplay();
+  delay(500);
+  lcd.display();
+  delay(500);*/
+}
+
+void keypad1(){
+  // print the pressed key
+  char key = kpd.getKey();
+  if(key){
+        Serial.println(key);
+  }
+}
+
+bool transitionk1k2(){
+  if(k1_solved)
+    return true;
+  else
+    return false;
+}
+
+void keypad2(){
+  // print the pressed key
+  char key = kpd.getKey();
+  if(key){
+        Serial.println(key);
+  }
+}
+
+bool transitionk2t1(){
+  if(k2_solved)
+    return true;
+  else
+    return false;
+}
+
+void toggle1(){
   // leds are turned on with switches
   for(int i = 0; i < 8; i++){
     if(digitalRead(btns[i])){
@@ -45,17 +106,44 @@ void loop() {
       digitalWrite(leds[i], LOW);
     }
   }
-
-  // print the pressed key
-  char key = kpd.getKey();
-  if(key){
-        Serial.println(key);
-  }
-
-  /* simple display test
-  lcd.noDisplay();
-  delay(500);
-  lcd.display();
-  delay(500);*/
 }
 
+bool transitiont1t2(){
+  if(t1_solved)
+    return true;
+  else
+    return false;
+}
+
+void toggle2(){
+  // leds are turned on with switches
+  for(int i = 0; i < 8; i++){
+    if(digitalRead(btns[i])){
+      digitalWrite(leds[i], HIGH);
+    }else{
+      digitalWrite(leds[i], LOW);
+    }
+  }
+}
+
+bool transitiont2p(){
+  if(t2_solved)
+    return true;
+  else
+    return false;
+}
+
+void piezo(){
+  Serial.println("piezo");
+}
+
+bool transitionps(){
+  if(p_solved)
+    return true;
+  else
+    return false;
+}
+
+void solved(){
+  Serial.println("!!! solved !!!");
+}

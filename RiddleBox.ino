@@ -39,7 +39,7 @@ Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
   Serial.begin(9600);
-  randomSeed(analogRead(0));
+  randomSeed(analogRead(8));
   
   // lcd setup
   lcd.begin(16, 2);
@@ -85,7 +85,9 @@ void setup() {
   peep();
 
   k1_solved = true;
-  //k2_solved = true;
+  k2_solved = true;
+  t1_solved = true;
+  t2_solved = true;
 
   k1->addTransition(&transitionk1k2,k2);
   k2->addTransition(&transitionk2t1,t1);
@@ -162,10 +164,10 @@ void keypad2(){
       }
     }
     
-    if(k2_keypos[k2_pos*2] == row && k2_keypos[k2_pos*2 + 1] == col){
+    if(k2_keypos[k2_pos*2] == col+1 && k2_keypos[k2_pos*2 + 1] == row+1){
       playPositiveSound();
       k2_pos++;
-      if(k2_pos >= 2){
+      if(k2_pos >= 3){
         playSolvedSound();
         k2_solved = true;
       }
@@ -220,7 +222,7 @@ void toggle1(){
   delay(20);
 }
 
-byte t2_numbers[8] = {2,232,52,53,23,150,254,22};
+byte t2_numbers[8];
 
 bool transitiont1t2(){
   if(t1_solved){
@@ -228,7 +230,7 @@ bool transitiont1t2(){
 
     // generate random numbers
     for(int i = 0; i < 8; i++){
-      t2_numbers[i] = random(1,255); // nr between 0 and 254
+      t2_numbers[i] = random(1,255); // nr between 1 and 254 inklusive
     }
 
     // choose 3 positions
@@ -238,8 +240,28 @@ bool transitiont1t2(){
     do{ pos3 = random(0,8); }while(pos3 == pos1 || pos3 == pos2);
     // set 3rd number to add up to 255 with 1st and 2nd number
 
-    //t2_numbers[pos2] = random(0,0);
-    t2_numbers[pos3] = 255 - t2_numbers[pos1] + t2_numbers[pos2];
+    // make 3 numbers sum to 255
+    t2_numbers[pos2] = random(1,255-t2_numbers[pos1]);
+    t2_numbers[pos3] = 255 - (t2_numbers[pos1] + t2_numbers[pos2]);
+
+    Serial.println(t2_numbers[pos1]); 
+    Serial.println(t2_numbers[pos2]);
+    Serial.println(t2_numbers[pos3]);
+
+    // BUBBLESORT
+    bool isSorted = false;
+    do{
+      isSorted = true;
+      for(byte i = 0; i < 7; i++){
+        if(t2_numbers[i] > t2_numbers[i+1]){
+          byte temp = t2_numbers[i];
+          t2_numbers[i] = t2_numbers[i+1];
+          t2_numbers[i+1] = temp;
+          isSorted = false;
+        }
+      }
+    }while(!isSorted);
+    
     
     return true;
   }else
@@ -249,7 +271,7 @@ bool transitiont1t2(){
 // -- RIDDLE NR 4 --
 // :: add random numbers
 void toggle2(){
-  byte sum = 0;
+  int sum = 0;
   
   // add activated numbers
   for(int i = 0; i < 8; i++){
@@ -266,30 +288,79 @@ void toggle2(){
   
   // light up leds according to sum
   for(int bitNr = 0; bitNr < 8; bitNr++){
-    boolean bitState = (1 << bitNr) & sum;
+    boolean bitState = (1 << bitNr) & (byte)sum;
     digitalWrite(leds[bitNr], bitState);
     if(!bitState){
       correct = false;
     }
   }
 
-  if(correct){
+  if(correct){    
+    delay(500);
+    for(int i = 0; i < 8; i++){
+      digitalWrite(leds[7-i], LOW);
+      delay(50);
+    }
+    lcd.clear();
     playSolvedSound();
+    
     t2_solved = true;
   }
 
-  delay(10);
+  delay(20);
 }
 
+bool p_rythm[8];
+int p_note1Freq = 440;
+int p_note2Freq = 494;
+int p_T = 200;
+byte p_index = 0;
+
 bool transitiont2p(){
-  if(t2_solved)
+  if(t2_solved){
+    // -- INITIALIZE RIDDLE NO 5 --
+    
+    Serial.println("TUNE");
+    // generate rythm
+    for(int i = 0; i < 4; i++){
+      byte pos;
+      do{
+        pos = random(0,9);
+      }while(p_rythm[pos]);
+      
+      p_rythm[pos] = true;
+    }
+    Serial.println("TUNE");
+    
     return true;
-  else
+  }else
     return false;
 }
 
+// -- RIDDLE NR 5 --
+// :: play tune
 void piezo(){
-  Serial.println("piezo");
+  // handle peeps
+  if(p_index != 8){
+  if(digitalRead(btns[p_index])){
+    tone(piezoPin, p_note1Freq, 50);
+  }
+
+  // handle leds
+  for(int i = 0; i < 8; i++){
+    if(digitalRead(btns[i])^(p_index==i)){
+      digitalWrite(leds[i], HIGH);
+    }else{
+      digitalWrite(leds[i], LOW);
+    }
+  }
+  
+  if(p_index < 8){
+    p_index++;
+  }else{
+    p_index = 0;
+  }
+  delay(p_T);
 }
 
 void playPositiveSound(){

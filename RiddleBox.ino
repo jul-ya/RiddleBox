@@ -124,6 +124,7 @@ bool transitionk1k2(){
 }
 
 // -- RIDDLE NR 2 --
+// :: enter random keypad coordinates
 void keypad2(){
   // print the pressed key
   char key = kpd.getKey();
@@ -142,13 +143,21 @@ void keypad2(){
   }
 }
 
+byte t1_randomNr;
+
 bool transitionk2t1(){
-  if(k2_solved)
+  if(k2_solved){
+    // -- INITIALIZE RIDDLE NO 3 --
+    t1_randomNr = random(); // generate 8bit nr
+    
     return true;
+  }
   else
     return false;
 }
 
+// -- RIDDLE NR 3 --
+// :: enter random keypad coordinates
 void toggle1(){
   // leds are turned on with switches
   for(int i = 0; i < 8; i++){
@@ -157,6 +166,19 @@ void toggle1(){
     }else{
       digitalWrite(leds[i], LOW);
     }
+  }
+
+  // check switches
+  boolean correct = true;
+  for(int bitNr = 0; bitNr < 8; bitNr++){
+    boolean bitState = (1 << bitNr) & t1_randomNr;
+    if(!bitState){
+      correct = false;
+    }
+  }
+  if(correct){
+    playSolvedSound();
+    t1_solved = true;
   }
 }
 

@@ -21,9 +21,9 @@ const int piezoPin = 23;
 const int rs = 7, en = 6, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-const int leds[] = {53,51,49,47,45,43,41,39};
-const int btns[] = {38,40,42,44,46,48,50,52};
-const int lamps[] = {0,0,0,0,0};
+const int leds[] = {39,41,43,45,47,49,51,53}; 
+const int btns[] = {52, 50, 48, 46, 44, 42, 40, 38}; // watch out! polarity inverted!
+const int lamps[] = {37,35,33,31,29};
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -33,40 +33,59 @@ char keys[ROWS][COLS] = {
   {'7','8','9','C'},
   {'*','0','#','D'}
 };
-byte rowPins[ROWS] = {36, 34, 32, 30};
-byte colPins[COLS] = {28, 26, 24, 22};
+byte colPins[COLS] = {30, 32, 34, 36};
+byte rowPins[ROWS] = {22, 24, 26, 28};
 Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS); 
 
 void setup() {
   Serial.begin(9600);
+  randomSeed(analogRead(0));
   
   // lcd setup
   lcd.begin(16, 2);
-
-  // display intro
-  for(int i = 0; i < 10; i++){
-    String text = "";
-    for(int n = 0; n < 16; n++){
-      byte randomValue = random(0, 37);
-      char letter = randomValue + 'a';
-      if(randomValue > 26)
-        letter = (randomValue - 26) + '0';
-      text += letter;
-    }
-   
-    delay(100);
-    lcd.clear();
-  }
 
   // led and switch setup
   for(int i = 0; i < 8; i++){
     pinMode(leds[i], OUTPUT);
     pinMode(btns[i], INPUT_PULLUP);
   }
-
+  
   for(int i = 0; i < 5; i++){
-    //pinMode(lamps[i], OUTPUT);
+    pinMode(lamps[i], OUTPUT);
   }
+  
+  // simple display test
+  //lcd.noDisplay();
+  //lcd.display();
+  
+  // display intro
+  // todo: second row
+  for(int i = 0; i < 16; i++){
+    lcd.clear();
+    String text = "";
+    byte lampNr = i%5;
+    
+    for(int n = 0; n < 32; n++){
+      byte randomValue = random(0, 37);
+      char letter = randomValue + 'a';
+      if(randomValue > 26)
+        letter = (randomValue - 26) + '0';
+      text += letter;
+    }
+    lcd.print(text);
+    lcd.setCursor(0, 1);
+    lcd.print(text.substring(16));
+
+    digitalWrite(leds[i%8],HIGH);
+    delay(20);
+    digitalWrite(leds[i%8],LOW);
+  }
+
+  
+  peep();
+
+  k1_solved = true;
+  //k2_solved = true;
 
   k1->addTransition(&transitionk1k2,k2);
   k2->addTransition(&transitionk2t1,t1);
@@ -79,19 +98,11 @@ void loop() {
   machine.run();
 
   // LIGHT UP LAMPS
-  /*
-  if(k1_solved) digitalWrite(lamp[0],HIGH);
-  if(k2_solved) digitalWrite(lamp[1],HIGH);
-  if(t1_solved) digitalWrite(lamp[2],HIGH);
-  if(t2_solved) digitalWrite(lamp[3],HIGH);
-  if(p_solved) digitalWrite(lamp[4],HIGH);
-  */
-  
-  /* simple display test
-  lcd.noDisplay();
-  delay(500);
-  lcd.display();
-  delay(500);*/
+  if(k1_solved) digitalWrite(lamps[0],HIGH);
+  if(k2_solved) digitalWrite(lamps[1],HIGH);
+  if(t1_solved) digitalWrite(lamps[2],HIGH);
+  if(t2_solved) digitalWrite(lamps[3],HIGH);
+  if(p_solved) digitalWrite(lamps[4],HIGH);
 }
 
 void keypad1(){
@@ -103,20 +114,24 @@ void keypad1(){
 }
 
 byte k2_pos;
-byte k2_key[2];
+byte k2_keypos[6];
 
 bool transitionk1k2(){
   if(k1_solved){
     // -- INITIALIZE RIDDLE NO 2 --
     k2_pos = 0;
     
-    // generate random keypad position
-    k2_key[0] = random(0,3);
-    k2_key[1] = random(0,3);
+    // generate random keypad positions
+    for(int i = 0; i < 6; i++){
+      k2_keypos[i] = random(1,5);
+    }
 
     // print keypad positions
     lcd.clear();
-    lcd.print(" " + String(k2_key[0]) + " " + String(k2_key[1]));
+    lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
+              String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
+              String(k2_keypos[4]) + "/" + String(k2_keypos[5]));
+    
     
     return true;
   }else
@@ -128,8 +143,26 @@ bool transitionk1k2(){
 void keypad2(){
   // print the pressed key
   char key = kpd.getKey();
+
   if(key != NO_KEY){
-    if(k2_key[k2_pos] == key){
+    peep();
+
+    // search for pressed key in keymap
+    int row = 0, col = 0;
+    boolean found = false;
+    for(row = 0; row < ROWS; row++){
+      for(col = 0; col < COLS; col++){
+        found = key == keys[row][col];
+        if(found){
+          break;
+        }
+      }        
+      if(found){
+        break;
+      }
+    }
+    
+    if(k2_keypos[k2_pos*2] == row && k2_keypos[k2_pos*2 + 1] == col){
       playPositiveSound();
       k2_pos++;
       if(k2_pos >= 2){
@@ -149,6 +182,8 @@ bool transitionk2t1(){
   if(k2_solved){
     // -- INITIALIZE RIDDLE NO 3 --
     t1_randomNr = random(); // generate 8bit nr
+    lcd.clear();
+    lcd.print(t1_randomNr);
     
     return true;
   }
@@ -170,9 +205,10 @@ void toggle1(){
 
   // check switches
   boolean correct = true;
+
   for(int bitNr = 0; bitNr < 8; bitNr++){
     boolean bitState = (1 << bitNr) & t1_randomNr;
-    if(!bitState){
+    if(bitState != digitalRead(btns[bitNr])){
       correct = false;
     }
   }
@@ -180,24 +216,69 @@ void toggle1(){
     playSolvedSound();
     t1_solved = true;
   }
+
+  delay(20);
 }
 
+byte t2_numbers[8] = {2,232,52,53,23,150,254,22};
+
 bool transitiont1t2(){
-  if(t1_solved)
+  if(t1_solved){
+    // -- INITIALIZE RIDDLE NO 4 --
+
+    // generate random numbers
+    for(int i = 0; i < 8; i++){
+      t2_numbers[i] = random(1,255); // nr between 0 and 254
+    }
+
+    // choose 3 positions
+    byte pos1,pos2,pos3;
+    pos1 = random(0,8);
+    do{ pos2 = random(0,8); }while(pos2 == pos1);
+    do{ pos3 = random(0,8); }while(pos3 == pos1 || pos3 == pos2);
+    // set 3rd number to add up to 255 with 1st and 2nd number
+
+    //t2_numbers[pos2] = random(0,0);
+    t2_numbers[pos3] = 255 - t2_numbers[pos1] + t2_numbers[pos2];
+    
     return true;
-  else
+  }else
     return false;
 }
 
+// -- RIDDLE NR 4 --
+// :: add random numbers
 void toggle2(){
-  // leds are turned on with switches
+  byte sum = 0;
+  
+  // add activated numbers
   for(int i = 0; i < 8; i++){
     if(digitalRead(btns[i])){
-      digitalWrite(leds[i], HIGH);
-    }else{
-      digitalWrite(leds[i], LOW);
+      sum += t2_numbers[i];
     }
   }
+
+  // print sum to display
+  lcd.clear();
+  lcd.print(sum);
+
+  boolean correct = true;
+  
+  // light up leds according to sum
+  for(int bitNr = 0; bitNr < 8; bitNr++){
+    boolean bitState = (1 << bitNr) & sum;
+    digitalWrite(leds[bitNr], bitState);
+    if(!bitState){
+      correct = false;
+    }
+  }
+
+  if(correct){
+    playSolvedSound();
+    t2_solved = true;
+  }
+
+  delay(10);
 }
 
 bool transitiont2p(){
@@ -221,9 +302,9 @@ void playPositiveSound(){
 
 void playSolvedSound(){
   tone(piezoPin, 440);
-  delay(300);
+  delay(150);
   tone(piezoPin, 523.26);
-  delay(300);
+  delay(150);
   tone(piezoPin, 783.99);
   delay(300);
   noTone(piezoPin);
@@ -235,6 +316,10 @@ void playNegativeSound(){
   tone(piezoPin, 415);
   delay(100);
   noTone(piezoPin);
+}
+
+void peep(){
+  tone(piezoPin, 880, 50);
 }
 
 bool transitionps(){

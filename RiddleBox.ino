@@ -136,6 +136,20 @@ void piezo(){
   Serial.println("piezo");
 }
 
+void playPositiveSound(){
+  tone(piezoPin, 440);
+  delay(400);
+  tone(piezoPin, 523.26);
+  delay(400);
+}
+
+void playNegativeSound(){
+  tone(piezoPin, 440);
+  delay(200);
+  tone(piezoPin, 415);
+  delay(200);
+}
+
 bool transitionps(){
   if(p_solved)
     return true;
@@ -158,5 +172,4 @@ Jeder Kippschalter bekommt eine Zufallszahl (irgendwelche müssen zusammen aber 
 
 Piezo Element:
 Einen Rhythmus mit den Kippschaltern kreieren, den einer der Oszillatoren vorspielt und als letzter 9ter Ton muss der Stern am Tastenfeld gedrückt werden
-
  */

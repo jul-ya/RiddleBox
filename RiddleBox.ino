@@ -41,7 +41,21 @@ void setup() {
   
   // lcd setup
   lcd.begin(16, 2);
-  lcd.print("RiddleBox 3000");
+
+  // display intro
+  for(int i = 0; i < 10; i++){
+    String text = "";
+    for(int n = 0; n < 10; n++){
+      byte randomValue = random(0, 37);
+      char letter = randomValue + 'a';
+      if(randomValue > 26)
+        letter = (randomValue - 26) + '0';
+      text += letter;
+    }
+   
+    delay(100);
+    lcd.clear();
+  }
 
   // led and switch setup
   for(int i = 0; i < 8; i++){

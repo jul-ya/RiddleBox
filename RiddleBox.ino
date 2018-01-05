@@ -23,6 +23,7 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 const int leds[] = {53,51,49,47,45,43,41,39};
 const int btns[] = {38,40,42,44,46,48,50,52};
+const int lamps[] = {0,0,0,0,0};
 
 const byte ROWS = 4;
 const byte COLS = 4;
@@ -45,7 +46,7 @@ void setup() {
   // display intro
   for(int i = 0; i < 10; i++){
     String text = "";
-    for(int n = 0; n < 10; n++){
+    for(int n = 0; n < 16; n++){
       byte randomValue = random(0, 37);
       char letter = randomValue + 'a';
       if(randomValue > 26)
@@ -63,6 +64,10 @@ void setup() {
     pinMode(btns[i], INPUT_PULLUP);
   }
 
+  for(int i = 0; i < 5; i++){
+    //pinMode(lamps[i], OUTPUT);
+  }
+
   k1->addTransition(&transitionk1k2,k2);
   k2->addTransition(&transitionk2t1,t1);
   t1->addTransition(&transitiont1t2,t2);
@@ -72,6 +77,15 @@ void setup() {
 
 void loop() {
   machine.run();
+
+  // LIGHT UP LAMPS
+  /*
+  if(k1_solved) digitalWrite(lamp[0],HIGH);
+  if(k2_solved) digitalWrite(lamp[1],HIGH);
+  if(t1_solved) digitalWrite(lamp[2],HIGH);
+  if(t2_solved) digitalWrite(lamp[3],HIGH);
+  if(p_solved) digitalWrite(lamp[4],HIGH);
+  */
   
   /* simple display test
   lcd.noDisplay();
@@ -88,18 +102,43 @@ void keypad1(){
   }
 }
 
+byte k2_pos;
+byte k2_key[2];
+
 bool transitionk1k2(){
-  if(k1_solved)
+  if(k1_solved){
+    // -- INITIALIZE RIDDLE NO 2 --
+    k2_pos = 0;
+    
+    // generate random keypad position
+    k2_key[0] = random(0,3);
+    k2_key[1] = random(0,3);
+
+    // print keypad positions
+    lcd.clear();
+    lcd.print(" " + String(k2_key[0]) + " " + String(k2_key[1]));
+    
     return true;
-  else
+  }else
     return false;
 }
 
+// -- RIDDLE NR 2 --
 void keypad2(){
   // print the pressed key
   char key = kpd.getKey();
-  if(key){
-        Serial.println(key);
+  if(key != NO_KEY){
+    if(k2_key[k2_pos] == key){
+      playPositiveSound();
+      k2_pos++;
+      if(k2_pos >= 2){
+        playSolvedSound();
+        k2_solved = true;
+      }
+    }else{
+      k2_pos = 0;
+      playNegativeSound();
+    }
   }
 }
 
@@ -152,16 +191,28 @@ void piezo(){
 
 void playPositiveSound(){
   tone(piezoPin, 440);
-  delay(400);
+  delay(300);
   tone(piezoPin, 523.26);
-  delay(400);
+  delay(300);
+  noTone();
+}
+
+void playSolvedSound(){
+  tone(piezoPin, 440);
+  delay(300);
+  tone(piezoPin, 523.26);
+  delay(300);
+  tone(piezoPin, 783.99);
+  delay(300);
+  noTone();
 }
 
 void playNegativeSound(){
   tone(piezoPin, 440);
-  delay(200);
+  delay(100);
   tone(piezoPin, 415);
-  delay(200);
+  delay(100);
+  noTone();
 }
 
 bool transitionps(){

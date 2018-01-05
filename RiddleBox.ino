@@ -1,15 +1,14 @@
-
 #include <LiquidCrystal.h>
 #include <Keypad.h>
 #include <StateMachine.h>
 
 StateMachine machine = StateMachine();
-State* k1 = machine.addState(&keypad1);
-State* k2 = machine.addState(&keypad2);
-State* t1 = machine.addState(&toggle1);
-State* t2 = machine.addState(&toggle2);
-State* p = machine.addState(&piezo);
-State* s = machine.addState(&solved);
+State* k1 = machine.addState(&keypad1); // keypad riddle 1
+State* k2 = machine.addState(&keypad2); // keypad riddle 2
+State* t1 = machine.addState(&toggle1); // toggle switch 1
+State* t2 = machine.addState(&toggle2); // toggle switch 2
+State* p = machine.addState(&piezo);  // final state
+State* s = machine.addState(&solved); // final state
 
 bool k1_solved = false;
 bool k2_solved = false;
@@ -147,3 +146,17 @@ bool transitionps(){
 void solved(){
   Serial.println("!!! solved !!!");
 }
+
+/*
+Display und Tastenfeld:
+Rechenoperationen werden angezeigt, man muss immer die Zwischenergebnisse eingeben
+Eingabe hat nichts mit den Tasten zu tun, zB ¾ (3 nach rechts, 4 nach unten)
+
+Binärcode in LEDS und Kippschalter (8 pins):
+Zufallszahl auf Display durch Kippschalter eingeben
+Jeder Kippschalter bekommt eine Zufallszahl (irgendwelche müssen zusammen aber 255 ergeben) und dann muss man addieren bis alle leuchten, das LCD Display zeigt “score all” an
+
+Piezo Element:
+Einen Rhythmus mit den Kippschaltern kreieren, den einer der Oszillatoren vorspielt und als letzter 9ter Ton muss der Stern am Tastenfeld gedrückt werden
+
+ */

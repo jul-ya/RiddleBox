@@ -194,7 +194,7 @@ void playPositiveSound(){
   delay(300);
   tone(piezoPin, 523.26);
   delay(300);
-  noTone();
+  noTone(piezoPin);
 }
 
 void playSolvedSound(){
@@ -204,7 +204,7 @@ void playSolvedSound(){
   delay(300);
   tone(piezoPin, 783.99);
   delay(300);
-  noTone();
+  noTone(piezoPin);
 }
 
 void playNegativeSound(){
@@ -212,7 +212,7 @@ void playNegativeSound(){
   delay(100);
   tone(piezoPin, 415);
   delay(100);
-  noTone();
+  noTone(piezoPin);
 }
 
 bool transitionps(){

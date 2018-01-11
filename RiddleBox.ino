@@ -137,10 +137,10 @@ void k1_init() {
   k1_result1 = 10;
   k1_result2 = 10;
   k1_result3 = 10;
-  k1_random1 = 30;
-  k1_random2 = 30;
-  k1_random3 = 30;
-  k1_random4 = 30;
+  k1_random1 = 20;
+  k1_random2 = 20;
+  k1_random3 = 20;
+  k1_random4 = 20;
   
   while((k1_result1 > 9 || k1_result1 < 0) || (k1_result2 > 9 || k1_result2 < 0) || (k1_result3 > 9 || k1_result3 < 0)) {
     

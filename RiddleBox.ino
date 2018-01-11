@@ -166,6 +166,7 @@ void k1_init() {
       k1_result3 = k1_result2 + k1_random4;
   }
   k1_print();
+  lcd.print("  [ ][ ][ ]");
 }
 
 void loop() {

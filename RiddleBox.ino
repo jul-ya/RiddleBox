@@ -67,11 +67,8 @@ void setup() {
   }
   
   // simple display test
-  //lcd.noDisplay();
-  //lcd.display();
   
-  // display intro
-  // todo: second row
+  // display intro with random characters
   for(int i = 0; i < 16; i++){
     lcd.clear();
     String text = "";
@@ -262,7 +259,8 @@ void keypad2(){
         break;
       }
     }
-    
+
+    // check if pressed key was at correct position
     if(k2_keypos[k2_pos*2] == col+1 && k2_keypos[k2_pos*2 + 1] == row+1){
       playPositiveSound();
       k2_pos++;
@@ -271,6 +269,8 @@ void keypad2(){
         k2_solved = true;
       }
     }else{
+      // wrong position: generate new positions
+      
       k2_pos = 0;
     
       // generate random keypad positions
@@ -372,7 +372,6 @@ bool transitiont1t2(){
       t2_numbers[pos2] = 255-t2_numbers[pos1];
     }
 
-
     Serial.println(t2_numbers[pos1]); 
     Serial.println(t2_numbers[pos2]);
     Serial.println(t2_numbers[pos3]);
@@ -424,7 +423,8 @@ void toggle2(){
     }
   }
 
-  if(correct){    
+  // finalize riddle
+  if(correct){   
     delay(500);
     for(int i = 0; i < 8; i++){
       digitalWrite(leds[7-i], LOW);
@@ -450,7 +450,6 @@ bool transitiont2p(){
   if(t2_solved){
     // -- INITIALIZE RIDDLE NO 5 --
     
-    Serial.println("TUNE");
     // generate rythm
     for(int i = 0; i < 4; i++){
       byte pos;
@@ -477,11 +476,9 @@ void piezo(){
   if(digitalRead(btns[p_index]) && !p_rythm[p_index]){
     tone(piezoPin, p_note1Freq, 25);
   }
-  
   if(!digitalRead(btns[p_index]) && p_rythm[p_index]){
     tone(piezoPin, p_note2Freq, 25);
   }
-
   if(p_rythm[p_index] && digitalRead(btns[p_index])){
     tone(piezoPin, p_note3Freq, 25);
   }
@@ -496,7 +493,7 @@ void piezo(){
       digitalWrite(leds[i], LOW);
     }
 
-    // check if everything is alright, is alright
+    // check if everything is set right
     if(digitalRead(btns[i]) != p_rythm[i]){
       p_correct = false;
     }
@@ -504,6 +501,7 @@ void piezo(){
   
   delay(p_T);
 
+  // if every toggle switch was correct, initialize final state
   if(p_correct){
     p_solved = true;
     delay(500);
@@ -569,6 +567,7 @@ bool transitionps(){
     return false;
 }
 
+// final state
 void solved(){
   char key = kpd.getKey();
   if(key != NO_KEY){
@@ -587,26 +586,13 @@ void solved(){
       }
     }
 
+    // beep according to pressed key
+    tone(piezoPin, notes[row+col*4],100);
+
+    // light up bulbs at random
     for(int i = 0; i < 5; i++){
       boolean r = (int)random(2) == 1;
       digitalWrite(lamps[i],r);
     }
-
-    tone(piezoPin, notes[row+col*4],100);
-  }else{
-    //noTone(piezoPin);
   }
 }
-
-/*
-Display und Tastenfeld:
-Rechenoperationen werden angezeigt, man muss immer die Zwischenergebnisse eingeben
-Eingabe hat nichts mit den Tasten zu tun, zB ¾ (3 nach rechts, 4 nach unten)
-
-Binärcode in LEDS und Kippschalter (8 pins):
-Zufallszahl auf Display durch Kippschalter eingeben
-Jeder Kippschalter bekommt eine Zufallszahl (irgendwelche müssen zusammen aber 255 ergeben) und dann muss man addieren bis alle leuchten, das LCD Display zeigt “score all” an
-
-Piezo Element:
-Einen Rhythmus mit den Kippschaltern kreieren, den einer der Oszillatoren vorspielt und als letzter 9ter Ton muss der Stern am Tastenfeld gedrückt werden
- */

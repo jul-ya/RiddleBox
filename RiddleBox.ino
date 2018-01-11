@@ -106,6 +106,7 @@ void setup() {
 
   // -- INITIALIZE RIDDLE NO 1 --
   k1_init();
+  lcd.print("  [ ][ ][ ]");
 }
 
 void k1_print(){
@@ -166,7 +167,6 @@ void k1_init() {
       k1_result3 = k1_result2 + k1_random4;
   }
   k1_print();
-  lcd.print("  [ ][ ][ ]");
 }
 
 void loop() {
@@ -212,9 +212,11 @@ void keypad1(){
       playNegativeSound();
       k1_init();
       lcd.print(key);
+      lcd.print(" [ ][ ][ ]");
     }
   }
 }
+
 byte k2_pos;
 byte k2_keypos[6];
 

@@ -37,6 +37,18 @@ byte colPins[COLS] = {30, 32, 34, 36};
 byte rowPins[ROWS] = {22, 24, 26, 28};
 Keypad kpd = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS); 
 
+int k1_counter;
+int k1_result1;
+int k1_result2;
+int k1_result3;
+int k1_random1;
+int k1_random2;
+int k1_random3;
+int k1_random4;
+int k1_sign1;
+int k1_sign2;
+int k1_sign3;
+
 void setup() {
   Serial.begin(9600);
   randomSeed(analogRead(8));
@@ -84,16 +96,78 @@ void setup() {
   
   peep();
 
-  k1_solved = true;
-  k2_solved = true;
-  t1_solved = true;
-  t2_solved = true;
+  k1_solved = false;
+  k2_solved = false;
+  t1_solved = false;
+  t2_solved = false;
 
   k1->addTransition(&transitionk1k2,k2);
   k2->addTransition(&transitionk2t1,t1);
   t1->addTransition(&transitiont1t2,t2);
   t2->addTransition(&transitiont2p,p);
   p->addTransition(&transitionps,s);
+
+  k1_init();
+}
+
+void k1_print(){
+  lcd.clear();
+  lcd.print(k1_random1);
+  if(k1_sign1 == 0)
+    lcd.print("-");
+  else
+    lcd.print("+");
+  lcd.print(k1_random2);
+  if(k1_sign2 == 0)
+    lcd.print("-");
+  else
+    lcd.print("+");
+  lcd.print(k1_random3);
+  if(k1_sign3 == 0)
+    lcd.print("-");
+  else
+    lcd.print("+");
+  lcd.print(k1_random4);
+  lcd.setCursor(0,1);
+}
+
+void k1_init() {
+
+  k1_counter = 0;
+  k1_result1 = 10;
+  k1_result2 = 10;
+  k1_result3 = 10;
+  k1_random1 = 30;
+  k1_random2 = 30;
+  k1_random3 = 30;
+  k1_random4 = 30;
+  
+  while((k1_result1 > 9 || k1_result1 < 0) || (k1_result2 > 9 || k1_result2 < 0) || (k1_result3 > 9 || k1_result3 < 0)) {
+    
+    k1_sign1 = random(0,2);
+    k1_sign2 = random(0,2);
+    k1_sign3 = random(0,2);
+    k1_random1 = random(1, 20);
+    k1_random2 = random(1, 20);
+    k1_random3 = random(1, 20);
+    k1_random4 = random(1, 20);
+
+    if(k1_sign1 == 0)
+      k1_result1 = k1_random1 - k1_random2;
+    else
+      k1_result1 = k1_random1 + k1_random2;
+    
+    if(k1_sign2 == 0)
+      k1_result2 = k1_result1 - k1_random3;
+    else
+      k1_result2 = k1_result1 + k1_random3;
+      
+    if(k1_sign3 == 0)
+      k1_result3 = k1_result2 - k1_random4;
+    else
+      k1_result3 = k1_result2 + k1_random4;
+  }
+  k1_print();
 }
 
 void loop() {
@@ -108,13 +182,35 @@ void loop() {
 }
 
 void keypad1(){
-  // print the pressed key
   char key = kpd.getKey();
-  if(key){
-        Serial.println(key);
+  if(key != NO_KEY) {
+  int key_int = key - '0';  
+    if(key_int == k1_result1 && k1_counter == 0) {
+      k1_print();
+      lcd.print(key);
+      lcd.print(" [x][ ][ ]");
+      k1_counter++;
+      playPositiveSound();
+    }else if(key_int == k1_result2 && k1_counter == 1) {
+      k1_print();
+      lcd.print(key);
+      lcd.print(" [x][x][ ]");
+      k1_counter++;
+      playPositiveSound();
+    } else if(key_int == k1_result3 && k1_counter == 2) {
+      k1_print();
+      lcd.print(key);
+      lcd.print(" [x][x][x]");
+      k1_counter++;
+      playSolvedSound();
+      k1_solved = true;
+    } else if((key_int != k1_result1 && k1_counter == 0) || (key_int != k1_result2 && k1_counter == 1) || (key_int != k1_result3 && k1_counter == 2)){
+      playNegativeSound();
+      k1_init();
+      lcd.print(key);
+    }
   }
 }
-
 byte k2_pos;
 byte k2_keypos[6];
 

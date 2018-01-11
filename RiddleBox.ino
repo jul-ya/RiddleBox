@@ -272,6 +272,18 @@ void keypad2(){
       }
     }else{
       k2_pos = 0;
+    
+      // generate random keypad positions
+      for(int i = 0; i < 6; i++){
+        k2_keypos[i] = random(1,5);
+      }
+  
+      // print keypad positions
+      lcd.clear();
+      lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
+                String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
+                String(k2_keypos[4]) + "/" + String(k2_keypos[5]));
+      
       playNegativeSound();
     }
   }
@@ -423,6 +435,7 @@ void toggle2(){
 bool p_rythm[8];
 int p_note1Freq = 440;
 int p_note2Freq = 494;
+int p_note3Freq = 523;
 int p_T = 200;
 byte p_index = 0;
 
@@ -454,15 +467,20 @@ int notes[] = {440,466,493,523,554,587,622,659,698,739,783,830,880,932,987,1046}
 // :: play tune
 void piezo(){
   // handle peeps
-  if(digitalRead(btns[p_index])){
+  if(digitalRead(btns[p_index]) && !p_rythm[p_index]){
     tone(piezoPin, p_note1Freq, 25);
   }
-  delay(25);
-  if(p_rythm[p_index]){
+  
+  if(!digitalRead(btns[p_index]) && p_rythm[p_index]){
     tone(piezoPin, p_note2Freq, 25);
   }
 
+  if(p_rythm[p_index] && digitalRead(btns[p_index])){
+    tone(piezoPin, p_note3Freq, 25);
+  }
   
+  delay(25);
+
   for(int i = 0; i < 8; i++){
     // handle leds
     if(digitalRead(btns[i])^(p_index==i)){
@@ -509,9 +527,9 @@ void piezo(){
 
 void playPositiveSound(){
   tone(piezoPin, 440);
-  delay(300);
-  tone(piezoPin, 523.26);
-  delay(300);
+  delay(200);
+  tone(piezoPin, 783.99);
+  delay(200);
   noTone(piezoPin);
 }
 
@@ -521,13 +539,13 @@ void playSolvedSound(){
   tone(piezoPin, 523.26);
   delay(150);
   tone(piezoPin, 783.99);
-  delay(300);
+  delay(350);
   noTone(piezoPin);
 }
 
 void playNegativeSound(){
   tone(piezoPin, 440);
-  delay(100);
+  delay(50);
   tone(piezoPin, 415);
   delay(100);
   noTone(piezoPin);
@@ -544,10 +562,7 @@ bool transitionps(){
     return false;
 }
 
-
-
 void solved(){
-
   char key = kpd.getKey();
   if(key != NO_KEY){
     // search for pressed key in keymap
@@ -559,7 +574,7 @@ void solved(){
         if(found){
           break;
         }
-      }        
+      }
       if(found){
         break;
       }
@@ -573,7 +588,6 @@ void solved(){
     tone(piezoPin, notes[row+col*4],100);
   }else{
     //noTone(piezoPin);
-
   }
 }
 

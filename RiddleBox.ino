@@ -341,7 +341,6 @@ bool transitiont2p(){
 // :: play tune
 void piezo(){
   // handle peeps
-  if(p_index != 8){
   if(digitalRead(btns[p_index])){
     tone(piezoPin, p_note1Freq, 50);
   }

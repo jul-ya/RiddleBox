@@ -100,11 +100,13 @@ void loop() {
   machine.run();
 
   // LIGHT UP LAMPS
-  if(k1_solved) digitalWrite(lamps[0],HIGH);
-  if(k2_solved) digitalWrite(lamps[1],HIGH);
-  if(t1_solved) digitalWrite(lamps[2],HIGH);
-  if(t2_solved) digitalWrite(lamps[3],HIGH);
-  if(p_solved) digitalWrite(lamps[4],HIGH);
+  if(!p_solved){
+    if(k1_solved) digitalWrite(lamps[0],HIGH);
+    if(k2_solved) digitalWrite(lamps[1],HIGH);
+    if(t1_solved) digitalWrite(lamps[2],HIGH);
+    if(t2_solved) digitalWrite(lamps[3],HIGH);
+    if(p_solved) digitalWrite(lamps[4],HIGH);
+  }
 }
 
 void keypad1(){
@@ -184,6 +186,9 @@ bool transitionk2t1(){
   if(k2_solved){
     // -- INITIALIZE RIDDLE NO 3 --
     t1_randomNr = random(); // generate 8bit nr
+    if(t1_randomNr < 30){
+      t1_randomNr += 30;
+    }
     lcd.clear();
     lcd.print(t1_randomNr);
     
@@ -207,13 +212,21 @@ void toggle1(){
 
   // check switches
   boolean correct = true;
-
+  byte switchValue = 0;
   for(int bitNr = 0; bitNr < 8; bitNr++){
     boolean bitState = (1 << bitNr) & t1_randomNr;
+    if(digitalRead(btns[bitNr]))
+      bitSet(switchValue, bitNr);
     if(bitState != digitalRead(btns[bitNr])){
       correct = false;
     }
   }
+
+  lcd.clear();
+  lcd.print(t1_randomNr);
+  lcd.setCursor(0, 1);
+  lcd.print(switchValue, HEX);
+  
   if(correct){
     playSolvedSound();
     t1_solved = true;
@@ -325,41 +338,76 @@ bool transitiont2p(){
     for(int i = 0; i < 4; i++){
       byte pos;
       do{
-        pos = random(0,9);
+        pos = random(0,8);
       }while(p_rythm[pos]);
       
       p_rythm[pos] = true;
     }
+    
     Serial.println("TUNE");
     
     return true;
   }else
     return false;
 }
+boolean p_correct = false;
+int notes[] = {440,466,493,523,554,587,622,659,698,739,783,830,880,932,987,1046};
 
 // -- RIDDLE NR 5 --
 // :: play tune
 void piezo(){
   // handle peeps
   if(digitalRead(btns[p_index])){
-    tone(piezoPin, p_note1Freq, 50);
+    tone(piezoPin, p_note1Freq, 25);
+  }
+  delay(25);
+  if(p_rythm[p_index]){
+    tone(piezoPin, p_note2Freq, 25);
   }
 
-  // handle leds
+  
   for(int i = 0; i < 8; i++){
+    // handle leds
     if(digitalRead(btns[i])^(p_index==i)){
       digitalWrite(leds[i], HIGH);
     }else{
       digitalWrite(leds[i], LOW);
     }
+
+    // check if everything is alright, is alright
+    if(digitalRead(btns[i]) != p_rythm[i]){
+      p_correct = false;
+    }
   }
   
-  if(p_index < 8){
+  delay(p_T);
+
+  if(p_correct){
+    p_solved = true;
+    delay(500);
+    
+    for(int i = 0; i < 8; i++){
+      tone(piezoPin, notes[i]);
+      digitalWrite(leds[7-i], HIGH);
+      delay(50);
+      digitalWrite(leds[7-i], LOW);
+    }
+    noTone(piezoPin);
+    
+    lcd.clear();
+    lcd.print("the journey ends");
+    lcd.setCursor(0, 1);
+    lcd.print("no more thought");
+    playSolvedSound();
+    digitalWrite(lamps[4],HIGH);
+  }
+  
+  if(p_index < 7){
     p_index++;
   }else{
     p_index = 0;
+    p_correct = true;
   }
-  delay(p_T);
 }
 
 void playPositiveSound(){
@@ -399,8 +447,37 @@ bool transitionps(){
     return false;
 }
 
+
+
 void solved(){
-  Serial.println("!!! solved !!!");
+
+  char key = kpd.getKey();
+  if(key != NO_KEY){
+    // search for pressed key in keymap
+    int row = 0, col = 0;
+    boolean found = false;
+    for(row = 0; row < ROWS; row++){
+      for(col = 0; col < COLS; col++){
+        found = key == keys[row][col];
+        if(found){
+          break;
+        }
+      }        
+      if(found){
+        break;
+      }
+    }
+
+    for(int i = 0; i < 5; i++){
+      boolean r = (int)random(2) == 1;
+      digitalWrite(lamps[i],r);
+    }
+
+    tone(piezoPin, notes[row+col*4],100);
+  }else{
+    //noTone(piezoPin);
+
+  }
 }
 
 /*

@@ -334,6 +334,7 @@ void toggle1(){
   lcd.clear();
   lcd.print(t1_randomNr);
   lcd.setCursor(0, 1);
+  lcd.print("0x");
   lcd.print(switchValue, HEX);
   
   if(correct){
@@ -345,6 +346,7 @@ void toggle1(){
 }
 
 byte t2_numbers[8];
+bool hard = false;
 
 bool transitiont1t2(){
   if(t1_solved){
@@ -362,9 +364,14 @@ bool transitiont1t2(){
     do{ pos3 = random(0,8); }while(pos3 == pos1 || pos3 == pos2);
     // set 3rd number to add up to 255 with 1st and 2nd number
 
-    // make 3 numbers sum to 255
-    t2_numbers[pos2] = random(1,255-t2_numbers[pos1]);
-    t2_numbers[pos3] = 255 - (t2_numbers[pos1] + t2_numbers[pos2]);
+    if(hard){
+      // make 3 numbers sum to 255
+      t2_numbers[pos2] = random(1,255-t2_numbers[pos1]);
+      t2_numbers[pos3] = 255 - (t2_numbers[pos1] + t2_numbers[pos2]);
+    }else{
+      t2_numbers[pos2] = 255-t2_numbers[pos1];
+    }
+
 
     Serial.println(t2_numbers[pos1]); 
     Serial.println(t2_numbers[pos2]);

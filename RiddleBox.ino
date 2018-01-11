@@ -229,7 +229,14 @@ bool transitionk1k2(){
     lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
               String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
               String(k2_keypos[4]) + "/" + String(k2_keypos[5]));
-    
+    lcd.setCursor(0,1);
+    for(int i = 0; i < 3; i++){
+      if(i < k2_pos){
+        lcd.print("[x]");
+      }else{
+        lcd.print("[ ]");
+      }
+    }
     
     return true;
   }else
@@ -277,14 +284,23 @@ void keypad2(){
       for(int i = 0; i < 6; i++){
         k2_keypos[i] = random(1,5);
       }
-  
-      // print keypad positions
-      lcd.clear();
-      lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
-                String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
-                String(k2_keypos[4]) + "/" + String(k2_keypos[5]));
       
       playNegativeSound();
+    }
+
+    // print keypad positions
+    lcd.clear();
+    lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
+              String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
+              String(k2_keypos[4]) + "/" + String(k2_keypos[5]));    
+              
+    lcd.setCursor(0,1);
+    for(int i = 0; i < 3; i++){
+      if(i < k2_pos){
+        lcd.print("[x]");
+      }else{
+        lcd.print("[ ]");
+      }
     }
   }
 }
@@ -308,7 +324,7 @@ bool transitionk2t1(){
 }
 
 // -- RIDDLE NR 3 --
-// :: enter random keypad coordinates
+// :: use toggle switches to enter binary number
 void toggle1(){
   // leds are turned on with switches
   for(int i = 0; i < 8; i++){
@@ -326,6 +342,7 @@ void toggle1(){
     boolean bitState = (1 << bitNr) & t1_randomNr;
     if(digitalRead(btns[bitNr]))
       bitSet(switchValue, bitNr);
+    
     if(bitState != digitalRead(btns[bitNr])){
       correct = false;
     }

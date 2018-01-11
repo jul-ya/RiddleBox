@@ -104,7 +104,6 @@ void setup() {
   t2->addTransition(&transitiont2p,p);
   p->addTransition(&transitionps,s);
 
-  // -- INITIALIZE RIDDLE NO 1 --
   k1_init();
 }
 
@@ -166,7 +165,6 @@ void k1_init() {
       k1_result3 = k1_result2 + k1_random4;
   }
   k1_print();
-  lcd.print("  [ ][ ][ ]");
 }
 
 void loop() {
@@ -182,8 +180,6 @@ void loop() {
   }
 }
 
-// -- RIDDLE NR 1 --
-// :: enter interim results of a random calculation
 void keypad1(){
   char key = kpd.getKey();
   if(key != NO_KEY) {
@@ -229,18 +225,7 @@ bool transitionk1k2(){
     }
 
     // print keypad positions
-    lcd.clear();
-    lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
-              String(k2_keypos[2]) + "/" + String(k2_keypos[3]) + " " +
-              String(k2_keypos[4]) + "/" + String(k2_keypos[5]));
-    lcd.setCursor(0,1);
-    for(int i = 0; i < 3; i++){
-      if(i < k2_pos){
-        lcd.print("[x]");
-      }else{
-        lcd.print("[ ]");
-      }
-    }
+    k2_print();
     
     return true;
   }else
@@ -273,8 +258,9 @@ void keypad2(){
 
     // check if pressed key was at correct position
     if(k2_keypos[k2_pos*2] == col+1 && k2_keypos[k2_pos*2 + 1] == row+1){
-      playPositiveSound();
       k2_pos++;
+      k2_print();
+      playPositiveSound();
       if(k2_pos >= 3){
         playSolvedSound();
         k2_solved = true;
@@ -288,10 +274,15 @@ void keypad2(){
       for(int i = 0; i < 6; i++){
         k2_keypos[i] = random(1,5);
       }
+
+      k2_print();
       
       playNegativeSound();
     }
+  }
+}
 
+void k2_print(){
     // print keypad positions
     lcd.clear();
     lcd.print(String(k2_keypos[0]) + "/" + String(k2_keypos[1]) + " " + 
@@ -306,7 +297,6 @@ void keypad2(){
         lcd.print("[ ]");
       }
     }
-  }
 }
 
 byte t1_randomNr;
@@ -326,6 +316,8 @@ bool transitionk2t1(){
   else
     return false;
 }
+
+int t1_previousValue = 0;
 
 // -- RIDDLE NR 3 --
 // :: use toggle switches to enter binary number
@@ -352,11 +344,16 @@ void toggle1(){
     }
   }
 
-  lcd.clear();
-  lcd.print(t1_randomNr);
-  lcd.setCursor(0, 1);
-  lcd.print("0x");
-  lcd.print(switchValue, HEX);
+  // only update lcd when there is change
+  if(t1_previousValue != switchValue){
+    lcd.clear();
+    lcd.print(t1_randomNr);
+    lcd.setCursor(0, 1);
+    lcd.print("0x");
+    lcd.print(switchValue, HEX);
+
+    t1_previousValue = switchValue;
+  }
   
   if(correct){
     playSolvedSound();
@@ -417,6 +414,8 @@ bool transitiont1t2(){
     return false;
 }
 
+byte t2_previousSum = 0;
+
 // -- RIDDLE NR 4 --
 // :: add random numbers
 void toggle2(){
@@ -430,8 +429,11 @@ void toggle2(){
   }
 
   // print sum to display
-  lcd.clear();
-  lcd.print(sum);
+  if(t2_previousSum != sum){
+    lcd.clear();
+    lcd.print(sum);
+    t2_previousSum = sum;
+  }
 
   boolean correct = true;
   

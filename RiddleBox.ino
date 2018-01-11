@@ -202,6 +202,7 @@ void keypad1(){
       lcd.print(key);
       lcd.print(" [x][x][x]");
       k1_counter++;
+      playPositiveSound();
       playSolvedSound();
       k1_solved = true;
     } else if((key_int != k1_result1 && k1_counter == 0) || (key_int != k1_result2 && k1_counter == 1) || (key_int != k1_result3 && k1_counter == 2)){

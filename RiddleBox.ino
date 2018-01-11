@@ -104,6 +104,7 @@ void setup() {
   t2->addTransition(&transitiont2p,p);
   p->addTransition(&transitionps,s);
 
+  // -- INITIALIZE RIDDLE NO 1 --
   k1_init();
 }
 
@@ -165,6 +166,7 @@ void k1_init() {
       k1_result3 = k1_result2 + k1_random4;
   }
   k1_print();
+  lcd.print("  [ ][ ][ ]");
 }
 
 void loop() {
@@ -180,6 +182,8 @@ void loop() {
   }
 }
 
+// -- RIDDLE NR 1 --
+// :: enter interim results of a random calculation
 void keypad1(){
   char key = kpd.getKey();
   if(key != NO_KEY) {
